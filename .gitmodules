@@ -1,9 +1,9 @@
 [submodule "hdeem_cxx"]
 	path = hdeem_cxx
-	url = git@github.com:tud-zih-energy/hdeem_cxx.git
+	url = https://github.com/tud-zih-energy/hdeem_cxx.git
 [submodule "common"]
 	path = common
-	url = git@github.com:score-p/scorep_plugin_common.git
+	url = https://github.com/score-p/scorep_plugin_common.git
 [submodule "scorep"]
 	path = scorep
-	url = git@github.com:score-p/scorep_plugin_cxx_wrapper
+	url = https://github.com/score-p/scorep_plugin_cxx_wrapper
