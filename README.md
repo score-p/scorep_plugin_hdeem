@@ -8,8 +8,7 @@ To compile this plugin, you need:
 
 * A C++ 11 compiler
 
-* Score-P with `SCOREP_METRIC_PLUGIN_VERSION` 1 (Currently this is the branch
-    `TRY_RTSCHUETER_plugins_sync_callback`)
+* Score-P Version 2+ (`SCOREP_METRIC_PLUGIN_VERSION` >= 1)
 
 * The hdeem library and header files by BULL/ATOS
 
@@ -24,7 +23,7 @@ To compile this plugin, you need:
 
         cmake ..
 
-    The following settings are important:
+    The following settings can be customized:
 
     * `HDEEM_BMC_USER HDEEM_BMC_PASS`
 
@@ -37,10 +36,6 @@ To compile this plugin, you need:
     * `HDEEM_LIBRARIES`
 
         The full path of `libhdeem.so`, including the file name, e.g. `/usr/local/hdeem/libhdeem.so.1`
-
-    * `SCOREPPLUGINCXX_INCLUDE_DIRS`
-
-        Directory for the Score-P C++ abstraction headers
 
     * `SCOREP_CONFIG`
 
@@ -73,11 +68,13 @@ To compile this plugin, you need:
 
 ##Usage
 
-To add a dataheap metric to your trace, you have to add `hdeem_plugin` to the environment variable
-`SCOREP_METRIC_PLUGINS`.
+To add a hdeem metric to your trace, you have to add `hdeem_plugin` to the environment variable
+`SCOREP_METRIC_PLUGINS`. This is the preferred version for tracing. It preserves the best possible
+time resolution of the measurements.
 
-To add the synchrone metric, add `hdeem_sync_plugin` to the environment variable
-`SCOREP_METRIC_PLUGINS`.
+To add the synchronous metric, add `hdeem_sync_plugin` to the environment variable
+`SCOREP_METRIC_PLUGINS`. This can be useful for profiling. Measurements are only taken at events,
+e.g. enter / leave of regions.
 
 You have to add the list of the metric channel you are interested in to the environment variable
 `SCOREP_METRIC_HDEEM_PLUGIN` or `SCOREP_METRIC_HDEEM_SYNC_PLUGIN`.
@@ -90,11 +87,11 @@ post-mortem (`hdeem_plugin`) plugin, you should enable tracing and disable profi
 
 The sync plugin (`hdeem_sync_plugin`) works with profiling and tracing.
 
-Note: The sync plugin is implemented as a stricly syncronus plugin. Therefor, it measures per
-thread. As hdeem can just be used nodewide, the plguin does some thread and if enabled MPI
+Note: The sync plugin is implemented as a strictly synchronous plugin. Therefor, it measures per
+thread. As hdeem can just be used nodewide, the plugin does some thread and if enabled MPI
 operations in order to obtain the responsible thread and process. The trace file might hold some
 traces that are reported as 0. The profile might report wrong profiling statistics. Moreover, the
-plugin reports mJ and mW as interfer values. This operations are necesarry to be compatible with PTF
+plugin reports mJ and mW as interfer values. This operations are necessary to be compatible with PTF
 (http://periscope.in.tum.de/)
 
 ###Environment variables
@@ -141,12 +138,7 @@ plugin reports mJ and mW as interfer values. This operations are necesarry to be
 
 2. Check whether your hdeem functionality is working properly by using the hdeem command line tools.
 
-3. Write a mail to the author.
-
-### About `hdeem_cxx.hpp`
-
-The `hdeem_cxx.hpp` contains a convenient wrapper around hdeem for access with C++. See the
-`example/hdeem_cxx.cpp` on how to use it or run doxygen in the include directory.
+3. Write a mail to the authors.
 
 ##Authors
 
