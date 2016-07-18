@@ -6,7 +6,7 @@
 
 To compile this plugin, you need:
 
-* A C++ 11 compiler
+* A C++ 14 compiler
 
 * Score-P Version 2+ (`SCOREP_METRIC_PLUGIN_VERSION` >= 1)
 
