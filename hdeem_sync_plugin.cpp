@@ -534,6 +534,10 @@ public:
                 properties.push_back(add_metric_property(sensor_name, sensor, qunatity));
             }
         }
+        if (properties.empty())
+        {
+            logging::fatal()<< "No metrics added. Check your metrics!";
+        }
 
         logging::debug() << "get_event_info(" << metric_name << ") Quantity: "<< qunatity <<" returning " << properties.size() << " properties";
 
