@@ -1,8 +1,8 @@
-#Score-P HDEEM Energy Measurement Plugin
+# Score-P HDEEM Energy Measurement Plugin
 
-##Compilation and Installation
+## Compilation and Installation
 
-###Prerequisites
+### Prerequisites
 
 To compile this plugin, you need:
 
@@ -12,7 +12,7 @@ To compile this plugin, you need:
 
 * The hdeem library and header files by BULL/ATOS
 
-###Building and installation
+### Building and installation
 
 1. Create a build directory
 
@@ -42,7 +42,7 @@ To compile this plugin, you need:
         Path to the `scorep-config` tool including the file name
 
         > *Note:*
-        
+
         > If you have `scorep-config` in your `PATH`, it should be found by CMake.
 
     * `CMAKE_INSTALL_PREFIX`
@@ -66,7 +66,7 @@ To compile this plugin, you need:
 
 > Make sure to add the subfolder `lib` to your `LD_LIBRARY_PATH`.
 
-##Usage
+## Usage
 
 To add a hdeem metric to your trace, you have to add `hdeem_plugin` to the environment variable
 `SCOREP_METRIC_PLUGINS`. This is the preferred version for tracing. It preserves the best possible
@@ -82,30 +82,30 @@ You have to add the list of the metric channel you are interested in to the envi
 Note: Score-P does not support per-host post-mortem plugins with profiling. If you want to use the
 post-mortem (`hdeem_plugin`) plugin, you should enable tracing and disable profiling by using:
 
-        export SCOREP_ENABLE_PROFILING="false"
-        export SCOREP_ENABLE_TRACING="true"
+    export SCOREP_ENABLE_PROFILING="false"
+    export SCOREP_ENABLE_TRACING="true"
 
 The sync plugin (`hdeem_sync_plugin`) works with profiling and tracing.
 
 Note: The sync plugin is implemented as a strictly synchronous plugin. Therefor, it measures per
-thread. As hdeem can just be used nodewide, the plugin does some thread and if enabled MPI
+thread. As hdeem can just be used node-wide, the plugin does some thread and if enabled MPI
 operations in order to obtain the responsible thread and process. The trace file might hold some
 traces that are reported as 0. The profile might report wrong profiling statistics. Moreover, the
 plugin reports mJ and mW as interfer values. This operations are necessary to be compatible with PTF
 (http://periscope.in.tum.de/)
 
-###Environment variables
+### Environment variables
 
 * `SCOREP_METRIC_HDEEM_PLUGIN` (only applicable to the `hdeem_plugin`)
 
     Comma-separated list of sensors, can also contain wildcards, e.g. `Blade,CPU*`
 
 * `SCOREP_METRIC_HDEEM_SYNC_PLUGIN` (only applicable to the `hdeem_sync_plugin`)
-    
+
     Comma-separated list of sensors, and physical quantity. Can also contain wildcards, e.g.
     `BLADE/P,*/E`
 
-* `SCOREP_METRIC_HDEEM_PLUGIN_CONNECTION` or `SCOREP_METRIC_HDEEM_SYNC_PLUGIN_CONNECTION` (defualt
+* `SCOREP_METRIC_HDEEM_PLUGIN_CONNECTION` or `SCOREP_METRIC_HDEEM_SYNC_PLUGIN_CONNECTION` (default
     `BMC`)
 
     Can be set to either `INBAND` for inband connection to the BMC via PCIe/GPIO (default) or `OOB`
