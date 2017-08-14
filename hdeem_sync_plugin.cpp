@@ -434,9 +434,9 @@ public:
 
                     logging::debug()<<"hash value: "<< hash;
 
-                    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-                    MPI_Comm_split(MPI_COMM_WORLD, hash, myrank, &node_local_comm);
-                    MPI_Comm_rank(node_local_comm, &new_myrank);
+                    PMPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+                    PMPI_Comm_split(MPI_COMM_WORLD, hash, myrank, &node_local_comm);
+                    PMPI_Comm_rank(node_local_comm, &new_myrank);
 
                     if (new_myrank == 0)
                     {
@@ -451,7 +451,7 @@ public:
                     this->responsible_thread = syscall(SYS_gettid);
                     logging::debug() << "got responsible ptid:" << this->responsible_thread;
 
-                    MPI_Comm_free(&node_local_comm);
+                    PMPI_Comm_free(&node_local_comm);
 #else
                     logging::warn()<<"You are using the non MPI version of this plugin. This might lead to trouble if there is more than one MPI rank per node.";
                     this->is_resposible = true;
