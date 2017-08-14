@@ -8,11 +8,13 @@
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  *    and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+ * conditions
  *    and the following disclaimer in the documentation and/or other materials provided with the
  *    distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to
+ * endorse
  *    or promote products derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
@@ -20,8 +22,10 @@
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF
  * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -30,13 +34,13 @@
 #include <scorep/plugin/util/matcher.hpp>
 
 extern "C" {
-#include <unistd.h>
 #include <climits>
+#include <unistd.h>
 }
 #include <ctime>
 
-#include <ostream>
 #include <chrono>
+#include <ostream>
 #include <ratio>
 
 #include <hdeem_cxx.hpp>
@@ -146,11 +150,10 @@ std::ostream& operator<<(std::ostream& s, const hdeem_metric& metric)
 template <typename P, typename Policies>
 using hdeem_object_id = object_id<hdeem_metric, P, Policies>;
 
-class hdeem_plugin
-    : public scorep::plugin::base<hdeem_plugin, async, per_host, post_mortem, scorep_clock, hdeem_object_id>
+class hdeem_plugin : public scorep::plugin::base<hdeem_plugin, async, per_host, post_mortem,
+                                                 scorep_clock, hdeem_object_id>
 {
 public:
-
     hdeem_plugin()
     {
         auto connection = scorep::environment_variable::get("CONNECTION", "INBAND");
@@ -168,7 +171,8 @@ public:
             }
             std::string bmc_hostname = c_hostname;
             bmc_hostname = bmc_hostname + "-bmc";
-            hdeem.reset(new hdeem::connection(bmc_hostname, HDEEM_BMC_USER_STR, HDEEM_BMC_PASS_STR));
+            hdeem.reset(
+                new hdeem::connection(bmc_hostname, HDEEM_BMC_USER_STR, HDEEM_BMC_PASS_STR));
 #else
             throw std::logic_error("This build of hdeem_plugin does not support out of band.");
 #endif
@@ -243,7 +247,7 @@ public:
         }
         catch (std::exception& ex)
         {
-            logging::error() << "HDEEM could not stop: " <<  ex.what();
+            logging::error() << "HDEEM could not stop: " << ex.what();
         }
         auto tp_after_stop = local_clock::now();
         auto status = hdeem->get_status();
@@ -253,11 +257,14 @@ public:
                         << readings->size(hdeem::sensor_id::blade(0)) << " blade values, "
                         << readings->size(hdeem::sensor_id::vr(0)) << " vr values"
                         << " in " << chrono_to_millis(local_clock::now() - tp_after_stop) << " ms.";
-        logging::debug() << "scorep(ticks) start: " << scorep_start.count() << ", stop: " << scorep_stop.count();
+        logging::debug() << "scorep(ticks) start: " << scorep_start.count()
+                         << ", stop: " << scorep_stop.count();
         logging::debug() << "local(sys,us) start: " << local_start.time_since_epoch().count()
                          << ", stop: " << local_stop.time_since_epoch().count();
-        logging::debug() << "bmc stats(s)  start: " << status.start_time_blade.tv_sec << "." << status.start_time_blade.tv_nsec
-                         << ", stop: " << status.stop_time_blade.tv_sec << "." << status.stop_time_blade.tv_nsec;
+        logging::debug() << "bmc stats(s)  start: " << status.start_time_blade.tv_sec << "."
+                         << status.start_time_blade.tv_nsec
+                         << ", stop: " << status.stop_time_blade.tv_sec << "."
+                         << status.stop_time_blade.tv_nsec;
     }
 
     void synchronize(bool is_responsible, SCOREP_MetricSynchronizationMode sync_mode)
@@ -292,8 +299,8 @@ public:
             filter_offset = time_offset_vr;
         }
 
-        auto converter =
-            scorep_time_converter<local_clock::time_point>(local_start, local_stop, scorep_start, scorep_stop);
+        auto converter = scorep_time_converter<local_clock::time_point>(local_start, local_stop,
+                                                                        scorep_start, scorep_stop);
         local_clock::duration duration_actual;
         scorep::chrono::ticks scorep_start_actual;
         if (timer == timer_t::NODE)
@@ -304,15 +311,17 @@ public:
         else if (timer == timer_t::BMC)
         {
             auto status = hdeem->get_status(false);
-            auto hdeem_duration =
-                std::chrono::nanoseconds(1000000000 * (status.stop_time_blade.tv_sec - status.start_time_blade.tv_sec) +
-                                         (status.stop_time_blade.tv_nsec - status.start_time_blade.tv_nsec));
+            auto hdeem_duration = std::chrono::nanoseconds(
+                1000000000 * (status.stop_time_blade.tv_sec - status.start_time_blade.tv_sec) +
+                (status.stop_time_blade.tv_nsec - status.start_time_blade.tv_nsec));
             duration_actual = std::chrono::duration_cast<local_clock::duration>(hdeem_duration);
             // Need to convert from timespec to scorep ... going through local as intermediate step
-            const auto scorep_start_bmc = converter.to_ticks(timespec_to_chrono(status.start_time_blade));
-            logging::trace() << "BMC timer duration(sysclock usually us) " << duration_actual.count() << " instead of "
-                             << (local_stop - local_start).count() << ", start(ticks) " << scorep_start_bmc.count()
-                             << " instead of " << scorep_start.count();
+            const auto scorep_start_bmc =
+                converter.to_ticks(timespec_to_chrono(status.start_time_blade));
+            logging::trace() << "BMC timer duration(sysclock usually us) "
+                             << duration_actual.count() << " instead of "
+                             << (local_stop - local_start).count() << ", start(ticks) "
+                             << scorep_start_bmc.count() << " instead of " << scorep_start.count();
             scorep_start_actual = scorep_start_bmc + converter.to_ticks(filter_offset);
         }
         else
@@ -320,19 +329,24 @@ public:
             throw std::logic_error("unimplemented timer model.");
         }
 
-        // We must use double here to avoid too much precision loss e.g. from integers in microseconds
-        const double sampling_period = static_cast<double>(duration_actual.count()) / sensor_data.size();
+        // We must use double here to avoid too much precision loss e.g. from integers in
+        // microseconds
+        const double sampling_period =
+            static_cast<double>(duration_actual.count()) / sensor_data.size();
 
-        logging::trace() << "Using effective sampling period of " << sampling_period << " sysclock ticks (usually us)";
+        logging::trace() << "Using effective sampling period of " << sampling_period
+                         << " sysclock ticks (usually us)";
 
-        const auto index_to_scorep_ticks = [sampling_period, scorep_start_actual, converter](size_t index)
-        {
+        const auto index_to_scorep_ticks = [sampling_period, scorep_start_actual,
+                                            converter](size_t index) {
             // TODO Add offset, needs further time computation
             return scorep_start_actual +
-                   converter.to_ticks(local_clock::duration(static_cast<int64_t>(sampling_period * index)));
+                   converter.to_ticks(
+                       local_clock::duration(static_cast<int64_t>(sampling_period * index)));
         };
 
-        logging::trace() << "Reading " << sensor_data.size() << " values from sensor " << handle.sensor;
+        logging::trace() << "Reading " << sensor_data.size() << " values from sensor "
+                         << handle.sensor;
         cursor.resize(sensor_data.size());
         for (auto elem : sensor_data)
         {
@@ -345,7 +359,8 @@ public:
             logging::warn() << "no valid measurements are in the time range. Total measurements: "
                             << sensor_data.size();
         }
-        logging::debug() << "get_all_values wrote " << sensor_data.size() << " values (out of which " << cursor.size()
+        logging::debug() << "get_all_values wrote " << sensor_data.size()
+                         << " values (out of which " << cursor.size()
                          << " are in the valid time range) in "
                          << chrono_to_millis(local_clock::now() - tp_start) << " ms.";
     }
@@ -363,26 +378,32 @@ public:
         }
 
         scorep::plugin::util::matcher match(metric_name);
-        for (auto sensor : hdeem->sensors()) {
+        for (auto sensor : hdeem->sensors())
+        {
             const auto& sensor_name = hdeem->sensor_name(sensor);
-            if (match(sensor_name)) {
+            if (match(sensor_name))
+            {
                 properties.push_back(add_metric_property(sensor_name, sensor));
             }
         }
 
-        logging::debug() << "get_event_info(" << metric_name << ") returning " << properties.size() << " properties";
+        logging::debug() << "get_event_info(" << metric_name << ") returning " << properties.size()
+                         << " properties";
         return properties;
     }
 
 private:
     const std::string prefix = "hdeem/";
-    scorep::plugin::metric_property add_metric_property(const std::string& name, hdeem::sensor_id sensor)
+    scorep::plugin::metric_property add_metric_property(const std::string& name,
+                                                        hdeem::sensor_id sensor)
     {
         const std::string full_name = prefix + name;
 
         auto& handle = make_handle(full_name, full_name, name, sensor);
         logging::trace() << "registered handle: " << handle;
-        return scorep::plugin::metric_property(full_name, "power consumption", "W").absolute_point().value_double();
+        return scorep::plugin::metric_property(full_name, "power consumption", "W")
+            .absolute_point()
+            .value_double();
     }
 
     scorep::chrono::ticks scorep_start, scorep_stop;
