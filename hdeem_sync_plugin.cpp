@@ -145,6 +145,8 @@ private:
 
     std::chrono::steady_clock::time_point plugin_start_time;
 
+    std::chrono::steady_clock::time_point last_measurment;
+
 public:
     /**
      * Initialization of the plugin.
@@ -206,6 +208,10 @@ public:
             stoi(scorep::environment_variable::get("GET_NEW_STATS", "10")));
         logging::debug() << "set get_stats timeout to " << stats_timeout_ms.count() << " ms";
         logging::debug() << "set get_new_stats to " << get_new_stats.count() << " ms";
+
+        /*just be sure, that we get a first measurment.*/
+        last_measurment =
+            std::chrono::steady_clock::now() - get_new_stats - std::chrono::milliseconds(10);
 
         /*
          * this part restores informations saved in the global variables.
@@ -295,7 +301,10 @@ public:
 
         // check if we are the first metric. If yes get new data from hdeem (all other metrics
         // already got their data).
-        if (m.remesure_reference)
+        logging::trace() << "remeasure: "
+                         << ((std::chrono::steady_clock::now() - last_measurment) > get_new_stats);
+        if (m.remesure_reference &&
+            (std::chrono::steady_clock::now() - last_measurment) > get_new_stats)
         {
             invalid_result = false;
 
@@ -313,6 +322,8 @@ public:
 
             auto end = std::chrono::steady_clock::now();
             auto diff = end - start;
+
+            last_measurment = std::chrono::steady_clock::now();
 
 #ifdef HDEEM_GET_STATS_TRACE
             auto diff_ms = std::chrono::duration_cast<std::chrono::microseconds>(diff);
