@@ -131,7 +131,7 @@ plugin reports mJ and mW as interfer values. This operations are necessary to be
     becomes invalid. The measurement of energy or power values might be at any time point since the
     event to this time.
 
-* `GET_NEW_STATS` (only applicable to the `hdeem_sync_plugin`, default `10`)
+* `SCOREP_METRIC_HDEEM_SYNC_PLUGIN_GET_NEW_STATS` (only applicable to the `hdeem_sync_plugin`, default `10`)
 
     Can be set to any integer variable. Defines the time in milliseconds after a new measurement is
     taken. Events that triger the HDEEM plugin in between, will deliver the last value. This is 
