@@ -139,7 +139,7 @@ plugin reports mJ and mW as interfer values. This operations are necessary to be
 
 
 
-###If anything fails:
+### If anything fails:
 
 1. Check whether the plugin library can be loaded from the `LD_LIBRARY_PATH`.
 
@@ -147,7 +147,7 @@ plugin reports mJ and mW as interfer values. This operations are necessary to be
 
 3. Write a mail to the authors.
 
-##Authors
+## Authors
 
 * Thomas Ilsche (thomas.ilsche at tu-dresden dot de)
 * Mario Bielert (mario.bielert at tu-dresden dot de)
