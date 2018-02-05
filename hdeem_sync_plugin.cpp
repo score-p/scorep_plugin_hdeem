@@ -120,13 +120,14 @@ public:
     hdeem_bmc_data_t bmc;
     bool init = false;
 
-    std::unique_ptr<hdeem::connection> hdeem;
+    std::unique_ptr<hdeem::connection> hdeem_;
     std::map<std::string, bool> already_saved_metrics;
 
 private:
     const std::string prefix_ = "hdeem/";
     bool got_remesure_reference_ = false;
     hdeem::sensor_stats last_stats_;
+    hdeem::sensor_stats reference_stats_;
     std::string hostname;
     bool is_resposible = false;
 
@@ -187,14 +188,14 @@ public:
         auto connection = scorep::environment_variable::get("CONNECTION", "INBAND");
         if (connection == "INBAND")
         {
-            hdeem.reset(new hdeem::connection());
+            hdeem_.reset(new hdeem::connection());
             logging::info() << "using In Band";
         }
         else
         {
 #ifdef HDEEM_HAS_IPMI
             std::string bmc_hostname = this->hostname + std::string("-bmc");
-            hdeem.reset(
+            hdeem_.reset(
                 new hdeem::connection(bmc_hostname, HDEEM_BMC_USER_STR, HDEEM_BMC_PASS_STR));
             logging::info() << "using Out of Band";
 #else
@@ -236,14 +237,6 @@ public:
         pid_t ptid = syscall(SYS_gettid);
         if (this->is_resposible && (this->responsible_thread == ptid))
         {
-            try
-            {
-                hdeem->stop();
-            }
-            catch (std::exception& e)
-            {
-                logging::error() << "Error occoured: " << e.what();
-            }
 
             if (invalid_result_count > 0)
             {
@@ -312,7 +305,7 @@ public:
 
             try
             {
-                last_stats_ = hdeem->get_stats();
+                last_stats_ = hdeem_->get_stats_total();
             }
             catch (std::exception& e)
             {
@@ -363,7 +356,8 @@ public:
                                  << (int64_t)(last_stats_.energy(m.sensor) * 1000)
                                  << ", for: " << m.full_name;
 #endif
-                proxy.store((int64_t)(last_stats_.energy(m.sensor) * 1000));
+                proxy.store((int64_t)(
+                    (last_stats_.energy(m.sensor) - reference_stats_.energy(m.sensor)) * 1000));
             }
             else if (m.quantity == "P")
             {
@@ -371,15 +365,17 @@ public:
                 // check if the last measurement has been valid.
                 if ((m.last_energy_value >= 0) && (m.last_samples_count >= 0))
                 {
-                    double energy = last_stats_.energy(m.sensor);
-                    auto samples_count = last_stats_.samples_count(m.sensor);
+                    double energy =
+                        (last_stats_.energy(m.sensor) - reference_stats_.energy(m.sensor));
+                    auto samples_count = (last_stats_.samples_count(m.sensor) -
+                                          reference_stats_.samples_count(m.sensor));
 
                     double energy_diff = energy - m.last_energy_value;
                     auto samples_diff = samples_count - m.last_samples_count;
 
                     if (samples_diff > 0)
                     {
-                        double time = samples_diff / hdeem->sensor_sampling_rate(m.sensor);
+                        double time = samples_diff / hdeem_->sensor_sampling_rate(m.sensor);
                         double result = energy_diff / time;
 
                         proxy.store((int64_t)(result * 1000));
@@ -387,8 +383,10 @@ public:
                 }
 
                 // we need to store this values in any way for the next measurement.
-                m.last_energy_value = last_stats_.energy(m.sensor);
-                m.last_samples_count = last_stats_.samples_count(m.sensor);
+                m.last_energy_value =
+                    (last_stats_.energy(m.sensor) - reference_stats_.energy(m.sensor));
+                m.last_samples_count = (last_stats_.samples_count(m.sensor) -
+                                        reference_stats_.samples_count(m.sensor));
             }
         }
         else
@@ -544,9 +542,9 @@ public:
         }
 
         scorep::plugin::util::matcher match(metric_name);
-        for (auto sensor : hdeem->sensors())
+        for (auto sensor : hdeem_->sensors())
         {
-            const auto& sensor_name = hdeem->sensor_name(sensor);
+            const auto& sensor_name = hdeem_->sensor_name(sensor);
             if (match(sensor_name))
             {
                 properties.push_back(add_metric_property(sensor_name, sensor, qunatity));
@@ -597,11 +595,7 @@ private:
     /** Initalisation of hdeem. Called after synchronize.
      *
      * if "is_resposible" is true does:
-     *
-     * Connection to hdeem
-     * Starting of hdeem
-     * Getting a few environment variables
-     *
+     * * collect inital measrutment of `last_stats_`
      *
      */
     void start_hdeem()
@@ -609,10 +603,16 @@ private:
         pid_t ptid = syscall(SYS_gettid);
         if (this->is_resposible && (this->responsible_thread == ptid))
         {
-            hdeem->start();
-
+            try
+            {
+                reference_stats_ = hdeem_->get_stats_total();
+            }
+            catch (std::exception& e)
+            {
+                logging::fatal() << "Error occoured: " << e.what();
+                logging::fatal() << "Resulting measurments might be wrong.";
+            }
             logging::info() << "hdeem started";
-
             plugin_start_time = std::chrono::steady_clock::now();
         }
         else
