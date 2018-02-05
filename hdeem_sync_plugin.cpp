@@ -126,15 +126,15 @@ public:
 private:
     const std::string prefix_ = "hdeem/";
     bool got_remesure_reference_ = false;
-    hdeem::sensor_stats last_stats_;
-    hdeem::sensor_stats reference_stats_;
+    hdeem::sensor_stats_total last_stats_;
+    hdeem::sensor_stats_total reference_stats_;
     std::string hostname;
     bool is_resposible = false;
 
     pid_t responsible_thread = -1;
 
     /*
-     * timeout for hdeem->get_stats() call. If more Time is expired result of call is
+     * timeout for hdeem->get_stats_total() call. If more Time is expired result of call is
      * dismissed
      */
 
@@ -207,7 +207,7 @@ public:
             stoi(scorep::environment_variable::get("STATS_TIMEOUT_MS", "10")));
         get_new_stats = std::chrono::milliseconds(
             stoi(scorep::environment_variable::get("GET_NEW_STATS", "10")));
-        logging::debug() << "set get_stats timeout to " << stats_timeout_ms.count() << " ms";
+        logging::debug() << "set get_stats_total timeout to " << stats_timeout_ms.count() << " ms";
         logging::debug() << "set get_new_stats to " << get_new_stats.count() << " ms";
 
         /*just be sure, that we get a first measurment.*/
@@ -269,7 +269,7 @@ public:
      * * scorep calls at every event all metrics
      * * this metrics are called everytime in the same order
      *
-     * NOTE: sometimes a get_stats() of hdeem takes very long, witch leeds to incorrect results
+     * NOTE: sometimes a get_stats_total() of hdeem takes very long, witch leeds to incorrect results
      * for the function. A workaround is to check the length of the call, and just return vaules
      * if the call is shorter then stats_timeout_ms witch is set
      * using SCOREP_METRIC_HDEEM_SYNC_PLUGIN_STATS_TIMEOUT_MS.
@@ -326,7 +326,7 @@ public:
             auto plugin_runtime_s =
                 std::chrono::duration_cast<std::chrono::duration<double>>(plugin_runtime);
 
-            logging::trace() << "response time for hdeem->get_stats();" << plugin_runtime_s.count()
+            logging::trace() << "response time for hdeem->get_stats_total();" << plugin_runtime_s.count()
                              << ";" << diff_ms.count();
 #endif
 
