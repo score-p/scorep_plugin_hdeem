@@ -2,6 +2,8 @@ project(hdeem_plugin)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(ENABLE_MPI "Build with MPI support." ON)
+
 # Intialize git submodules if not done already
 file(GLOB SUBMODULE_FILES "common/*")
 list(LENGTH SUBMODULE_FILES COUNT_COMMON)
